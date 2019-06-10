@@ -3,7 +3,7 @@ import tkinter
 import math
 
 
-new = False
+new_operand = False
 brackets = 0
 expression = ""
 
@@ -75,6 +75,17 @@ class Format:
 
         return value
 
+    # ! Deprecated method, made redundant by python's eval()
+    @staticmethod
+    def decimal_format(value):
+        e_ind = value.index("e")
+        if "e+" in value:
+            value = float(value[:e_ind]) * (10 ** int(value[e_ind + 2:]))
+
+        elif "e-" in value:
+            value = float(value[:e_ind]) / (10 ** int(value[e_ind + 2:]))
+        return value
+
 
 def angle_value(value):
     if degreeUnit.get() == 0:
@@ -97,7 +108,7 @@ def clear_expression():
 
 
 def expression_append(val):
-    if new is not True:
+    if new_operand is not True:
         expressionDisplay.set(expressionDisplay.get() + acc.get() + val)
     else:
         expressionDisplay.set(expressionDisplay.get() + val)
@@ -121,37 +132,55 @@ def get_result():
 
 
 def press(val):
-    global new
+    global new_operand
+    global expression
+    global brackets
 
-    if len(acc.get()) < 19 or new is True:
-        if new is False:
+    if len(acc.get()) < 19 or new_operand is True:
+        if new_operand is False:
+            if "e" in acc.get() and acc.get()[-1] == "0":
+                acc.set(acc.get()[:-1])
             if val == 0 and acc.get()[0] == "0" and len(acc.get()) == 1:
                 acc.set("0")
             elif val == "." and acc.get()[0] == "0":
                 acc.set(acc.get() + val)
+            if expression:
+                if expression[-1] == ")":
+                    expression = expression[:-1] + str(val) + ")"
             else:
-                if abs(float(acc.get() + str(val))) > 1:
+                if abs(float(acc.get() + str(val))) >= 1:
                     acc.set((acc.get() + str(val)).lstrip("0"))
                 else:
                     acc.set(acc.get() + str(val))
 
         else:
             acc.set(val)
-            new = False
+            if expression[-2] == "/":
+                expression += acc.get() + ")"
+                brackets -= 1
+            new_operand = False
 
 
 def evaluate():
     global expression
+    global brackets
     try:
         if expression:
             if expression[-1] == ")":
                 result = round(get_result(), 10)
             else:
-                result = round(eval(expression + acc.get()), 10)
+                if brackets == 1:
+                    expression += acc.get() + ")"
+                    brackets -= 1
+                    result = round(eval(expression), 10)
+                else:
+                    result = round(eval(expression + acc.get()), 10)
             acc.set(Format(result))
             clear_expression()
 
         else:
+            if "e" in acc.get():
+                acc.set(Format(str(eval(acc.get()))).result_format())
             clear_expression()
 
     except ZeroDivisionError:
@@ -177,7 +206,7 @@ def clear(case):
 
 
 def operate(operator):
-    global new
+    global new_operand
     global brackets
     global expression
 
@@ -186,7 +215,6 @@ def operate(operator):
             acc.set("")
 
     if operator == "+":
-        print(acc.get())
         expression += acc.get() + " + "
         expression_append(" + ")
 
@@ -206,6 +234,15 @@ def operate(operator):
         expression += acc.get() + " % "
         expression_append(" mod ")
 
+    elif operator == "^":
+        expression += acc.get() + " ** "
+        expression_append(" ^ ")
+
+    elif operator == "root":
+        brackets += 1
+        expression += acc.get() + " ** (1 / "
+        expression_append(" yroot ")
+
     elif operator == "(":
         expression += "("
         expression_append("(")
@@ -216,13 +253,18 @@ def operate(operator):
         expression_append(")")
         brackets -= 1
 
-    acc.set(get_result())
+    if operator != "root":
+        acc.set(get_result())
 
-    new = True
+    new_operand = True
+
+
+def exponential():
+    acc.set(acc.get() + "e+0")
 
 
 def func(function):
-    global new
+    global new_operand
 
     value = eval(acc.get())
 
@@ -231,7 +273,7 @@ def func(function):
 
     elif function == "sqrt":
         expressionDisplay.set(expressionDisplay.get() + f"sqrt({value}) ")
-        new = True
+        new_operand = True
         acc.set(round(math.sqrt(value), 10))
 
     elif function == "per":
@@ -239,48 +281,48 @@ def func(function):
 
     elif function == "rec":
         expressionDisplay.set(expressionDisplay.get() + f"reciproc({value})")
-        new = True
+        new_operand = True
         acc.set(round((1 / value), 10))
 
     elif function == "ln":
         try:
             expressionDisplay.set(expressionDisplay.get() + f"ln({value})")
-            new = True
+            new_operand = True
             acc.set(round(math.log(value), 10))
         except ValueError:
             acc.set("Math Error")
 
     elif function == "sinh":
         expressionDisplay.set(expressionDisplay.get() + f"sinh({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.sinh(angle_value(value)), 10))
 
     elif function == "sin":
         expressionDisplay.set(expressionDisplay.get() + f"sin({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.sin(angle_value(value)), 10))
 
     elif function == "sqr":
         expressionDisplay.set(expressionDisplay.get() + f"sqr({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.pow(value, 2), 10))
 
     elif function == "fact":
         try:
             expressionDisplay.set(expressionDisplay.get() + f"fact({value})")
-            new = True
+            new_operand = True
             acc.set(Format(str(math.factorial(value))))
         except ValueError:
             acc.set("Math Error")
 
     elif function == "cosh":
         expressionDisplay.set(expressionDisplay.get() + f"cosh({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.cosh(angle_value(value)), 10))
 
     elif function == "cos":
         expressionDisplay.set(expressionDisplay.get() + f"cos({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.cos(angle_value(value)), 10))
 
     elif function == "pi":
@@ -288,33 +330,33 @@ def func(function):
 
     elif function == "tanh":
         expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.tanh(angle_value(value)), 10))
 
     elif function == "tan":
         expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.tan(angle_value(value)), 10))
 
     elif function == "cube":
         expressionDisplay.set(expressionDisplay.get() + f"cube({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.pow(value, 3), 10))
 
     elif function == "crt":
         expressionDisplay.set(expressionDisplay.get() + f"crt({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.pow(value, 1 / 3), 10))
 
     elif function == "alog":
         expressionDisplay.set(expressionDisplay.get() + f"powerten({value})")
-        new = True
+        new_operand = True
         acc.set(round(math.pow(10, value)))
 
     elif function == "log":
         try:
             expressionDisplay.set(expressionDisplay.get() + f"log({value})")
-            new = True
+            new_operand = True
             acc.set(round(math.log10(value), 10))
         except ValueError:
             acc.set("Math Error")
@@ -408,15 +450,15 @@ if __name__ == "__main__":
     buttonDms = ttk.Button(functionFrame, text="dms").grid(row=2, column=0, sticky="ew", padx=2, pady=2)
     buttonCosh = ttk.Button(functionFrame, text="cosh", command=lambda: func("cosh")).grid(row=2, column=1, sticky="ew", padx=2, pady=2)
     buttonCos = ttk.Button(functionFrame, text="cos", command=lambda: func("cos")).grid(row=2, column=2, sticky="ew", padx=2, pady=2)
-    buttonPow = ttk.Button(functionFrame, text="x\u02B8").grid(row=2, column=3, sticky="ew", padx=2, pady=2)
-    buttonRoot = ttk.Button(functionFrame, text="y\u221Ax").grid(row=2, column=4, sticky="ew", padx=2, pady=2)
+    buttonPow = ttk.Button(functionFrame, text="x\u02B8", command=lambda: operate("^")).grid(row=2, column=3, sticky="ew", padx=2, pady=2)
+    buttonRoot = ttk.Button(functionFrame, text="y\u221Ax", command=lambda: operate("root")).grid(row=2, column=4, sticky="ew", padx=2, pady=2)
     buttonPi = ttk.Button(functionFrame, text="\u03C0", command=lambda: func("pi")).grid(row=3, column=0, sticky="ew", padx=2, pady=2)
     buttonTanh = ttk.Button(functionFrame, text="tanh", command=lambda: func("tanh")).grid(row=3, column=1, sticky="ew", padx=2, pady=2)
     buttonTan = ttk.Button(functionFrame, text="tan", command=lambda: func("tan")).grid(row=3, column=2, sticky="ew", padx=2, pady=2)
     buttonCube = ttk.Button(functionFrame, text="x\u00B3", command=lambda: func("cube")).grid(row=3, column=3, sticky="ew", padx=2, pady=2)
     buttonCrt = ttk.Button(functionFrame, text="\u00B3\u221Ax", command=lambda: func("crt")).grid(row=3, column=4, sticky="ew", padx=2, pady=2)
     buttonFE = ttk.Button(functionFrame, text="F-E", command=lambda: acc.set(Format(acc.get()).exp_format())).grid(row=4, column=0, sticky="ew", padx=2, pady=2)
-    buttonExp = ttk.Button(functionFrame, text="Exp").grid(row=4, column=1, sticky="ew", padx=2, pady=2)
+    buttonExp = ttk.Button(functionFrame, text="Exp", command=exponential).grid(row=4, column=1, sticky="ew", padx=2, pady=2)
     buttonMod = ttk.Button(functionFrame, text="Mod", command=lambda: operate("mod")).grid(row=4, column=2, sticky="ew", padx=2, pady=2)
     buttonLog = ttk.Button(functionFrame, text="log", command=lambda: func("log")).grid(row=4, column=3, sticky="ew", padx=2, pady=2)
     buttonALog = ttk.Button(functionFrame, text="10\u02E3", command=lambda: func("alog")).grid(row=4, column=4, sticky="ew", padx=2, pady=2)
