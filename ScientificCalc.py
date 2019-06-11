@@ -213,9 +213,10 @@ def mod_memory(action):
         memory = ""
 
     elif action == "recall":
-        acc.set(memory)
+        if memory:
+            acc.set(memory)
 
-    elif action == "store":
+    elif action == "save":
         memory = acc.get()
 
     elif action == "add":
