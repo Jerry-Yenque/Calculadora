@@ -361,6 +361,19 @@ def func(function):
         except ValueError:
             acc.set("Math Error")
 
+    elif function == "dms":
+        degree, ms = int(value // 1), value % 1
+        minutes, seconds = int((ms * 60) // 1), ((ms * 60) % 1) * 60
+        new_val = f"{degree}.{minutes}" + str(seconds).replace(".", "")
+        expressionDisplay.set(expressionDisplay.get() + f"dms({value})")
+        new_operand = True
+        acc.set(round(eval(new_val), 10))
+
+    elif function == "int":
+        expressionDisplay.set(expressionDisplay.get() + f"Int({value})")
+        new_operand = True
+        acc.set(int(value))
+
 
 def create_num_button(val, row, col):
     return tkinter.Button(standardFrame, text=str(val), relief="groove", bg="#ffffff", command=lambda: press(val)).grid(row=row, column=col, sticky="ew", padx=2, pady=2)
@@ -442,12 +455,12 @@ if __name__ == "__main__":
     buttonLn = ttk.Button(functionFrame, text="ln", command=lambda: func("ln")).grid(row=0, column=2, sticky="ew", padx=2, pady=2)
     buttonBraL = ttk.Button(functionFrame, text="(", command=lambda: operate("(")).grid(row=0, column=3, sticky="ew", padx=2, pady=2)
     buttonBraR = ttk.Button(functionFrame, text=")", command=lambda: operate(")")).grid(row=0, column=4, sticky="ew", padx=2, pady=2)
-    buttonInt = ttk.Button(functionFrame, text="Int").grid(row=1, column=0, sticky="ew", padx=2, pady=2)
+    buttonInt = ttk.Button(functionFrame, text="Int", command=lambda: func("int")).grid(row=1, column=0, sticky="ew", padx=2, pady=2)
     buttonSinh = ttk.Button(functionFrame, text="sinh", command=lambda: func("sinh")).grid(row=1, column=1, sticky="ew", padx=2, pady=2)
     buttonSin = ttk.Button(functionFrame, text="sin", command=lambda: func("sin")).grid(row=1, column=2, sticky="ew", padx=2, pady=2)
     buttonSqr = ttk.Button(functionFrame, text="x\u00B2", command=lambda: func("sqr")).grid(row=1, column=3, sticky="ew", padx=2, pady=2)
     buttonFact = ttk.Button(functionFrame, text="n!", command=lambda: func("fact")).grid(row=1, column=4, sticky="ew", padx=2, pady=2)
-    buttonDms = ttk.Button(functionFrame, text="dms").grid(row=2, column=0, sticky="ew", padx=2, pady=2)
+    buttonDms = ttk.Button(functionFrame, text="dms", command=lambda: func("dms")).grid(row=2, column=0, sticky="ew", padx=2, pady=2)
     buttonCosh = ttk.Button(functionFrame, text="cosh", command=lambda: func("cosh")).grid(row=2, column=1, sticky="ew", padx=2, pady=2)
     buttonCos = ttk.Button(functionFrame, text="cos", command=lambda: func("cos")).grid(row=2, column=2, sticky="ew", padx=2, pady=2)
     buttonPow = ttk.Button(functionFrame, text="x\u02B8", command=lambda: operate("^")).grid(row=2, column=3, sticky="ew", padx=2, pady=2)
