@@ -6,6 +6,7 @@ import math
 new_operand = False
 brackets = 0
 expression = ""
+memory = ""
 
 # Todo: if F-E is toggled, use exp_format, else use decimal format.
 # Todo: if value is in exp format, change it to decimal.
@@ -203,6 +204,31 @@ def clear(case):
     else:
         acc.set("0")
         clear_expression()
+
+
+def mod_memory(action):
+    global memory
+
+    if action == "clear":
+        memory = ""
+
+    elif action == "recall":
+        acc.set(memory)
+
+    elif action == "store":
+        memory = acc.get()
+
+    elif action == "add":
+        if memory:
+            memory = str(eval(memory) + eval(acc.get()))
+        else:
+            memory = acc.get()
+
+    elif action == "sub":
+        if memory:
+            memory = str(eval(memory) - eval(acc.get()))
+        else:
+            memory = "-" + acc.get()
 
 
 def operate(operator):
@@ -413,11 +439,11 @@ if __name__ == "__main__":
     standardFrame = ttk.Frame(calculator, borderwidth=1, bg="#acd8db")
     standardFrame.grid(row=1, column=6, rowspan=6)
 
-    buttonMC = ttk.Button(standardFrame, text="MC").grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-    buttonMR = ttk.Button(standardFrame, text="MR").grid(row=0, column=1, sticky="ew", padx=2, pady=2)
-    buttonMS = ttk.Button(standardFrame, text="MS").grid(row=0, column=2, sticky="ew", padx=2, pady=2)
-    buttonMp = ttk.Button(standardFrame, text="M+").grid(row=0, column=3, sticky="ew", padx=2, pady=2)
-    buttonMm = ttk.Button(standardFrame, text="M-").grid(row=0, column=4, sticky="ew", padx=2, pady=2)
+    buttonMC = ttk.Button(standardFrame, text="MC", command=lambda: mod_memory("clear")).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+    buttonMR = ttk.Button(standardFrame, text="MR", command=lambda: mod_memory("recall")).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+    buttonMS = ttk.Button(standardFrame, text="MS", command=lambda: mod_memory("save")).grid(row=0, column=2, sticky="ew", padx=2, pady=2)
+    buttonMp = ttk.Button(standardFrame, text="M+", command=lambda: mod_memory("add")).grid(row=0, column=3, sticky="ew", padx=2, pady=2)
+    buttonMm = ttk.Button(standardFrame, text="M-", command=lambda: mod_memory("sub")).grid(row=0, column=4, sticky="ew", padx=2, pady=2)
     buttonDel = ttk.Button(standardFrame, text="\u2190", command=lambda: clear(1)).grid(row=1, column=0, sticky="ew", padx=2, pady=2)
     buttonCE = ttk.Button(standardFrame, text="CE", command=lambda: clear(2)).grid(row=1, column=1, sticky="ew", padx=2, pady=2)
     buttonC = ttk.Button(standardFrame, text="C", command=lambda: clear(3)).grid(row=1, column=2, sticky="ew", padx=2, pady=2)
