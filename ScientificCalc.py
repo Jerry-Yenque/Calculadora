@@ -59,12 +59,10 @@ class Format:
 
     def result_format(self):
         if '.' in self.value and "e" not in self.value:
-            whole, decimal = self.value.split(".")
-            decimal = "".join(decimal)
-            if len(decimal) == 1 and decimal == "0":
-                value = "".join(whole)
+            if int(eval(self.value)) == eval(self.value):
+                value = str(int(eval(self.value)))
             else:
-                value = ".".join([whole, decimal])
+                value = self.value
 
         elif len(self.value) > 19:
             value = self.exp_format()
@@ -182,6 +180,8 @@ def evaluate():
         else:
             if "e" in display.get():
                 display.set(Format(str(eval(display.get()))).result_format())
+            else:
+                display.set(Format(display.get()))
             clear_expression()
 
     except ZeroDivisionError:
