@@ -7,6 +7,7 @@ new_operand = False
 brackets = 0
 expression = ""
 memory = ""
+inverted = False
 
 # Todo: if F-E is toggled, use exp_format, else use decimal format.
 # Todo: if value is in exp format, change it to decimal.
@@ -102,6 +103,20 @@ def angle_value(value):
         return value * 0.0157
 
 
+def arc_angle_value(value):
+    if degreeUnit.get() == 0:
+        # converts radians to degrees
+        return math.degrees(value)
+
+    elif degreeUnit.get() == 1:
+        # leaves value as radians
+        return value
+
+    else:
+        # converts radians to grad
+        return value * 63.662
+
+
 def clear_expression():
     global expression
     expression = ""
@@ -149,16 +164,18 @@ def press(val):
                 if expression[-1] == ")":
                     expression = expression[:-1] + str(val) + ")"
             else:
-                if abs(float(acc.get() + str(val))) >= 1:
-                    acc.set((acc.get() + str(val)).lstrip("0"))
-                else:
-                    acc.set(acc.get() + str(val))
+                if val != ".":
+                    if abs(float(acc.get() + str(val))) >= 1:
+                        acc.set((acc.get() + str(val)).lstrip("0"))
+                    else:
+                        acc.set(acc.get() + str(val))
 
         else:
             acc.set(val)
-            if expression[-2] == "/":
-                expression += acc.get() + ")"
-                brackets -= 1
+            if expression:
+                if expression[-2] == "/":
+                    expression += acc.get() + ")"
+                    brackets -= 1
             new_operand = False
 
 
@@ -204,6 +221,41 @@ def clear(case):
     else:
         acc.set("0")
         clear_expression()
+
+
+def invert():
+    global inverted
+
+    if buttonInv.config("relief")[-1] == "raised" and inverted is False:
+        buttonInv.config(relief="sunken")
+        inverted = True
+
+    else:
+        buttonInv.config(relief="raised")
+        inverted = False
+
+    if inverted:
+        buttonLn.config(text="e\u02E3")
+        buttonInt.config(text="Frac")
+        buttonSinh.config(text="sinh\u207B\u00B9")
+        buttonSin.config(text="sin\u207B\u00B9")
+        buttonDms.config(text="deg")
+        buttonCosh.config(text="cosh\u207B\u00B9")
+        buttonCos.config(text="cos\u207B\u00B9")
+        buttonPi.config(text="2*\u03C0")
+        buttonTanh.config(text="tanh\u207B\u00B9")
+        buttonTan.config(text="tan\u207B\u00B9")
+    else:
+        buttonLn.config(text="ln")
+        buttonInt.config(text="Int")
+        buttonSinh.config(text="sinh")
+        buttonSin.config(text="sin")
+        buttonDms.config(text="dms")
+        buttonCosh.config(text="cosh")
+        buttonCos.config(text="cos")
+        buttonPi.config(text="\u03C0")
+        buttonTanh.config(text="tanh")
+        buttonTan.config(text="tan")
 
 
 def mod_memory(action):
@@ -312,22 +364,34 @@ def func(function):
         acc.set(round((1 / value), 10))
 
     elif function == "ln":
-        try:
-            expressionDisplay.set(expressionDisplay.get() + f"ln({value})")
-            new_operand = True
-            acc.set(round(math.log(value), 10))
-        except ValueError:
-            acc.set("Math Error")
+        if not inverted:
+            try:
+                expressionDisplay.set(expressionDisplay.get() + f"ln({value})")
+                acc.set(round(math.log(value), 10))
+            except ValueError:
+                acc.set("Math Error")
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"powe({value})")
+            acc.set(round(math.pow(math.e, value), 10))
+        new_operand = True
 
     elif function == "sinh":
-        expressionDisplay.set(expressionDisplay.get() + f"sinh({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"sinh({value})")
+            acc.set(round(math.sinh(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"asinh({value})")
+            acc.set(round(math.asinh(value), 10))
         new_operand = True
-        acc.set(round(math.sinh(angle_value(value)), 10))
 
     elif function == "sin":
-        expressionDisplay.set(expressionDisplay.get() + f"sin({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"sin({value})")
+            acc.set(round(math.sin(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"asin({value})")
+            acc.set(round(arc_angle_value(math.asin(value)), 10))
         new_operand = True
-        acc.set(round(math.sin(angle_value(value)), 10))
 
     elif function == "sqr":
         expressionDisplay.set(expressionDisplay.get() + f"sqr({value})")
@@ -343,27 +407,46 @@ def func(function):
             acc.set("Math Error")
 
     elif function == "cosh":
-        expressionDisplay.set(expressionDisplay.get() + f"cosh({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"cosh({value})")
+            acc.set(round(math.cosh(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"acosh({value})")
+            acc.set(round(math.acosh(value), 10))
         new_operand = True
-        acc.set(round(math.cosh(angle_value(value)), 10))
 
     elif function == "cos":
-        expressionDisplay.set(expressionDisplay.get() + f"cos({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"cos({value})")
+            acc.set(round(math.cos(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"acos({value})")
+            acc.set(round(arc_angle_value(math.acos(value)), 10))
         new_operand = True
-        acc.set(round(math.cos(angle_value(value)), 10))
 
     elif function == "pi":
-        acc.set(round(math.pi, 10))
+        if not inverted:
+            acc.set(round(math.pi, 10))
+        else:
+            acc.set(round(math.pi * 2, 10))
 
     elif function == "tanh":
-        expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
+            acc.set(round(math.tanh(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"atanh({value})")
+            acc.set(round(math.atanh(value), 10))
         new_operand = True
-        acc.set(round(math.tanh(angle_value(value)), 10))
 
     elif function == "tan":
-        expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"tanh({value})")
+            acc.set(round(math.tan(angle_value(value)), 10))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"atan({value})")
+            acc.set(round(arc_angle_value(math.atan(value)), 10))
         new_operand = True
-        acc.set(round(math.tan(angle_value(value)), 10))
 
     elif function == "cube":
         expressionDisplay.set(expressionDisplay.get() + f"cube({value})")
@@ -389,12 +472,19 @@ def func(function):
             acc.set("Math Error")
 
     elif function == "dms":
-        degree, ms = int(value // 1), value % 1
-        minutes, seconds = int((ms * 60) // 1), ((ms * 60) % 1) * 60
-        new_val = f"{degree}.{minutes}" + str(seconds).replace(".", "")
-        expressionDisplay.set(expressionDisplay.get() + f"dms({value})")
+        if not inverted:
+            degree, ms = int(value // 1), value % 1
+            minutes, seconds = int((ms * 60) // 1), ((ms * 60) % 1) * 60
+            new_val = f"{degree}.{minutes}" + str(seconds).replace(".", "")
+            expressionDisplay.set(expressionDisplay.get() + f"dms({value})")
+            acc.set(round(eval(new_val), 10))
+        else:
+            degree, ms = int(value // 1), value % 1
+            minutes, seconds = ((ms // 0.01) / 60), (((ms % 0.01) * 1000) / 3600)
+            new_val = degree + minutes + seconds
+            expressionDisplay.set(expressionDisplay.get() + f"degrees({value})")
+            acc.set(round(new_val), 10)
         new_operand = True
-        acc.set(round(eval(new_val), 10))
 
     elif function == "int":
         expressionDisplay.set(expressionDisplay.get() + f"Int({value})")
@@ -438,7 +528,7 @@ if __name__ == "__main__":
     ttk.Radiobutton(radioFrame, text="Grads", variable=degreeUnit, value=2).grid(row=0, column=2)
 
     standardFrame = ttk.Frame(calculator, borderwidth=1, bg="#acd8db")
-    standardFrame.grid(row=1, column=6, rowspan=6)
+    standardFrame.grid(row=1, column=6, rowspan=6, padx=(0, 3), pady=(0, 5))
 
     buttonMC = ttk.Button(standardFrame, text="MC", command=lambda: mod_memory("clear")).grid(row=0, column=0, sticky="ew", padx=2, pady=2)
     buttonMR = ttk.Button(standardFrame, text="MR", command=lambda: mod_memory("recall")).grid(row=0, column=1, sticky="ew", padx=2, pady=2)
@@ -475,26 +565,35 @@ if __name__ == "__main__":
     functionFrame = ttk.Frame(calculator, borderwidth=1, bg="#acd8db")
     functionFrame.grid(row=2, column=0, columnspan=5)
 
-    # Todo: Rewrite all these statements with a loop
-
     buttonNull = ttk.Button(functionFrame, text="", state="disabled", relief="groove", bg="#acd8db").grid(row=0, column=0, sticky="ew", padx=2, pady=2)
-    buttonInv = ttk.Button(functionFrame, text="Inv").grid(row=0, column=1, sticky="ew", padx=2, pady=2)
-    buttonLn = ttk.Button(functionFrame, text="ln", command=lambda: func("ln")).grid(row=0, column=2, sticky="ew", padx=2, pady=2)
+    buttonInv = ttk.Button(functionFrame, text="Inv", command=invert)
+    buttonInv.grid(row=0, column=1, sticky="ew", padx=2, pady=2)
+    buttonLn = ttk.Button(functionFrame, text="ln", command=lambda: func("ln"))
+    buttonLn.grid(row=0, column=2, sticky="ew", padx=2, pady=2)
     buttonBraL = ttk.Button(functionFrame, text="(", command=lambda: operate("(")).grid(row=0, column=3, sticky="ew", padx=2, pady=2)
     buttonBraR = ttk.Button(functionFrame, text=")", command=lambda: operate(")")).grid(row=0, column=4, sticky="ew", padx=2, pady=2)
-    buttonInt = ttk.Button(functionFrame, text="Int", command=lambda: func("int")).grid(row=1, column=0, sticky="ew", padx=2, pady=2)
-    buttonSinh = ttk.Button(functionFrame, text="sinh", command=lambda: func("sinh")).grid(row=1, column=1, sticky="ew", padx=2, pady=2)
-    buttonSin = ttk.Button(functionFrame, text="sin", command=lambda: func("sin")).grid(row=1, column=2, sticky="ew", padx=2, pady=2)
+    buttonInt = ttk.Button(functionFrame, text="Int", command=lambda: func("int"))
+    buttonInt.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
+    buttonSinh = ttk.Button(functionFrame, text="sinh", command=lambda: func("sinh"))
+    buttonSinh.grid(row=1, column=1, sticky="ew", padx=2, pady=2)
+    buttonSin = ttk.Button(functionFrame, text="sin", command=lambda: func("sin"))
+    buttonSin.grid(row=1, column=2, sticky="ew", padx=2, pady=2)
     buttonSqr = ttk.Button(functionFrame, text="x\u00B2", command=lambda: func("sqr")).grid(row=1, column=3, sticky="ew", padx=2, pady=2)
     buttonFact = ttk.Button(functionFrame, text="n!", command=lambda: func("fact")).grid(row=1, column=4, sticky="ew", padx=2, pady=2)
-    buttonDms = ttk.Button(functionFrame, text="dms", command=lambda: func("dms")).grid(row=2, column=0, sticky="ew", padx=2, pady=2)
-    buttonCosh = ttk.Button(functionFrame, text="cosh", command=lambda: func("cosh")).grid(row=2, column=1, sticky="ew", padx=2, pady=2)
-    buttonCos = ttk.Button(functionFrame, text="cos", command=lambda: func("cos")).grid(row=2, column=2, sticky="ew", padx=2, pady=2)
+    buttonDms = ttk.Button(functionFrame, text="dms", command=lambda: func("dms"))
+    buttonDms.grid(row=2, column=0, sticky="ew", padx=2, pady=2)
+    buttonCosh = ttk.Button(functionFrame, text="cosh", command=lambda: func("cosh"))
+    buttonCosh.grid(row=2, column=1, sticky="ew", padx=2, pady=2)
+    buttonCos = ttk.Button(functionFrame, text="cos", command=lambda: func("cos"))
+    buttonCos.grid(row=2, column=2, sticky="ew", padx=2, pady=2)
     buttonPow = ttk.Button(functionFrame, text="x\u02B8", command=lambda: operate("^")).grid(row=2, column=3, sticky="ew", padx=2, pady=2)
     buttonRoot = ttk.Button(functionFrame, text="y\u221Ax", command=lambda: operate("root")).grid(row=2, column=4, sticky="ew", padx=2, pady=2)
-    buttonPi = ttk.Button(functionFrame, text="\u03C0", command=lambda: func("pi")).grid(row=3, column=0, sticky="ew", padx=2, pady=2)
-    buttonTanh = ttk.Button(functionFrame, text="tanh", command=lambda: func("tanh")).grid(row=3, column=1, sticky="ew", padx=2, pady=2)
-    buttonTan = ttk.Button(functionFrame, text="tan", command=lambda: func("tan")).grid(row=3, column=2, sticky="ew", padx=2, pady=2)
+    buttonPi = ttk.Button(functionFrame, text="\u03C0", command=lambda: func("pi"))
+    buttonPi.grid(row=3, column=0, sticky="ew", padx=2, pady=2)
+    buttonTanh = ttk.Button(functionFrame, text="tanh", command=lambda: func("tanh"))
+    buttonTanh.grid(row=3, column=1, sticky="ew", padx=2, pady=2)
+    buttonTan = ttk.Button(functionFrame, text="tan", command=lambda: func("tan"))
+    buttonTan.grid(row=3, column=2, sticky="ew", padx=2, pady=2)
     buttonCube = ttk.Button(functionFrame, text="x\u00B3", command=lambda: func("cube")).grid(row=3, column=3, sticky="ew", padx=2, pady=2)
     buttonCrt = ttk.Button(functionFrame, text="\u00B3\u221Ax", command=lambda: func("crt")).grid(row=3, column=4, sticky="ew", padx=2, pady=2)
     buttonFE = ttk.Button(functionFrame, text="F-E", command=lambda: acc.set(Format(acc.get()).exp_format())).grid(row=4, column=0, sticky="ew", padx=2, pady=2)
