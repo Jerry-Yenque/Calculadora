@@ -63,14 +63,13 @@ class Format:
                 value = str(int(eval(self.value)))
             else:
                 value = self.value
+            return value
 
         elif len(self.value) > 19:
-            value = self.exp_format()
+            return self.exp_format()
 
         else:
-            value = self.value
-
-        return value
+            return self.value
 
 
 def angle_value(value):
