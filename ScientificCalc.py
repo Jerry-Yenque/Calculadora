@@ -142,18 +142,17 @@ def press(val):
         if new_operand is False:
             if "e" in display.get() and display.get()[-1] == "0":
                 display.set(display.get()[:-1])
+            if expression and expression[-1] == ")":
+                expression = expression[:-1] + str(val) + ")"
             if val == 0 and display.get()[0] == "0" and len(display.get()) == 1:
                 display.set("0")
             elif val == "." and display.get()[0] == "0":
                 display.set(display.get() + val)
-            if expression and expression[-1] == ")":
-                expression = expression[:-1] + str(val) + ")"
             else:
-                if val != ".":
-                    if abs(float(display.get() + str(val))) >= 1:
-                        display.set((display.get() + str(val)).lstrip("0"))
-                    else:
-                        display.set(display.get() + str(val))
+                if val != "." and abs(float(display.get() + str(val))) >= 1:
+                    display.set((display.get() + str(val)).lstrip("0"))
+                else:
+                    display.set(display.get() + str(val))
 
         else:
             display.set(val)
@@ -472,9 +471,13 @@ def func(function):
         new_operand = True
 
     elif function == "int":
-        expressionDisplay.set(expressionDisplay.get() + f"Int({value})")
+        if not inverted:
+            expressionDisplay.set(expressionDisplay.get() + f"Int({value})")
+            display.set(int(value))
+        else:
+            expressionDisplay.set(expressionDisplay.get() + f"frac({value})")
+            display.set(round(value % 1, 10))
         new_operand = True
-        display.set(int(value))
 
 
 def create_num_button(val, row, col):
