@@ -156,10 +156,9 @@ def press(val):
 
         else:
             display.set(val)
-            if expression:
-                if expression[-2] == "/":
-                    expression += display.get() + ")"
-                    brackets -= 1
+            if expression and expression[-2] == "/":
+                expression += display.get() + ")"
+                brackets -= 1
             new_operand = False
 
 
