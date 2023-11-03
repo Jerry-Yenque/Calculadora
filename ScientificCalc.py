@@ -485,7 +485,7 @@ def create_num_button(val, row, col):
 if __name__ == "__main__":
 
     calculator = ttk.Tk()
-    calculator.title("Calculator")
+    calculator.title("Calculadora Científica")
     calculator.resizable(0, 0)
     calculator.configure(bg="#acd8db")
 
@@ -507,9 +507,9 @@ if __name__ == "__main__":
 
     degreeUnit = ttk.IntVar()
 
-    ttk.Radiobutton(radioFrame, text="Degrees", variable=degreeUnit, value=0).grid(row=0, column=0)
+    ttk.Radiobutton(radioFrame, text="Grados", variable=degreeUnit, value=0).grid(row=0, column=0)
 
-    ttk.Radiobutton(radioFrame, text="Radians", variable=degreeUnit, value=1).grid(row=0, column=1)
+    ttk.Radiobutton(radioFrame, text="Radianes", variable=degreeUnit, value=1).grid(row=0, column=1)
 
     ttk.Radiobutton(radioFrame, text="Grads", variable=degreeUnit, value=2).grid(row=0, column=2)
 
